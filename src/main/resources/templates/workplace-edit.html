@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>職場編集</title>
+</head>
+<body>
+
+    <h1>職場編集</h1>
+
+    <form method="post" action="/workplaces/edit">
+
+        <input type="hidden" name="id" th:value="${workplace.id}">
+
+        <p>
+            <label>職場名：</label>
+            <input type="text" name="name" th:value="${workplace.name}">
+        </p>
+
+        <p>
+            <label>通常時給：</label>
+            <input type="number" name="regularWage" th:value="${workplace.regularWage}">
+        </p>
+
+        <p>
+            <label>割増時給：</label>
+            <input type="number" name="premiumWage" th:value="${workplace.premiumWage}">
+        </p>
+
+        <button type="submit">更新</button>
+
+    </form>
+
+    <a href="/workplaces">職場一覧に戻る</a>
+
+</body>
+</html>

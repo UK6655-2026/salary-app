@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>職場管理</title>
+</head>
+<body>
+
+    <h1>職場管理</h1>
+
+    <h2>職場を登録</h2>
+
+    <form method="post" action="/workplaces">
+        <p>
+            <label>職場名：</label>
+            <input type="text" name="name">
+        </p>
+
+        <p>
+            <label>通常時給：</label>
+            <input type="number" name="regularWage">
+        </p>
+
+        <p>
+            <label>割増時給：</label>
+            <input type="number" name="premiumWage">
+        </p>
+
+        <button type="submit">登録</button>
+    </form>
+
+    <h2>登録された職場</h2>
+
+    <ul>
+        <li th:each="workplace : ${workplaces}">
+            <span th:text="${workplace.name}"></span>
+            （通常時給：<span th:text="${workplace.regularWage}"></span>円）
+            （割増時給：<span th:text="${workplace.premiumWage}"></span>円）
+
+            <form th:action="@{/workplaces/delete/{id}(id=${workplace.id})}" method="post">
+                <button type="submit">削除</button>
+            </form>
+
+            <a th:href="@{/workplaces/edit/{id}(id=${workplace.id})}">編集</a>
+        </li>
+    </ul>
+
+</body>
+</html>
