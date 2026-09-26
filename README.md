@@ -175,6 +175,20 @@
 * `home.html` 作成
 * ホーム画面の表示確認
 
+### 2026-09-26
+
+* 職場管理機能を実装
+* 職場の登録機能を実装
+* 登録された職場の一覧表示を実装
+* 職場の編集機能を実装
+* 職場の削除機能を実装
+* `Workplace` エンティティを作成
+* `WorkplaceRepository` を作成
+* `WorkplaceController` を作成
+* 職場管理画面（`workplaces.html`）を作成
+* 職場編集画面（`workplace-edit.html`）を作成
+* GitHubへコミット・プッシュ
+
 ## 今後の開発予定
 
 1. Workplaceエンティティ作成
