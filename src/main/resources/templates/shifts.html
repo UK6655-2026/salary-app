@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>シフト管理</title>
+</head>
+<body>
+
+    <h1>シフト管理</h1>
+
+    <h2>シフトを登録</h2>
+
+    <form method="post" action="/shifts">
+
+        <p>
+            <label>職場：</label>
+            <select name="workplaceId">
+                <option th:each="workplace : ${workplaces}"
+                        th:value="${workplace.id}"
+                        th:text="${workplace.name}">
+                </option>
+            </select>
+        </p>
+
+        <p>
+            <label>勤務日：</label>
+            <input type="date" name="workDate">
+        </p>
+
+        <p>
+            <label>開始時刻：</label>
+            <input type="time" name="startTime" step="600">
+        </p>
+
+        <p>
+            <label>終了時刻：</label>
+            <input type="time" name="endTime" step="600">
+        </p>
+
+        <p>
+            <label>休憩時間：</label>
+            <select name="breakMinutes">
+                <option value="0">なし</option>
+                <option value="10">10分</option>
+                <option value="20">20分</option>
+                <option value="30">30分</option>
+                <option value="60">60分</option>
+            </select>
+        </p>
+
+        <button type="submit">登録</button>
+
+    </form>
+
+    <h2>登録されたシフト</h2>
+
+    <ul>
+        <li th:each="shift : ${shifts}">
+            勤務日：<span th:text="${shift.workDate}"></span>
+            開始：<span th:text="${shift.startTime}"></span>
+            終了：<span th:text="${shift.endTime}"></span>
+
+            <form th:action="@{/shifts/delete/{id}(id=${shift.id})}" method="post">
+                <button type="submit">削除</button>
+            </form>
+
+            <a th:href="@{/shifts/edit/{id}(id=${shift.id})}">編集</a>
+        </li>
+    </ul>
+
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>シフト編集</title>
+</head>
+<body>
+
+    <h1>シフト編集</h1>
+
+    <form method="post" action="/shifts/edit">
+
+        <input type="hidden" name="id" th:value="${shift.id}">
+
+        <p>
+            <label>職場：</label>
+            <select name="workplaceId">
+                <option th:each="workplace : ${workplaces}"
+                        th:value="${workplace.id}"
+                        th:text="${workplace.name}"
+                        th:selected="${workplace.id == shift.workplaceId}">
+                </option>
+            </select>
+        </p>
+
+        <p>
+            <label>勤務日：</label>
+            <input type="date" name="workDate" th:value="${shift.workDate}">
+        </p>
+
+        <p>
+            <label>開始時刻：</label>
+            <input type="time" name="startTime" step="600" th:value="${shift.startTime}">
+        </p>
+
+        <p>
+            <label>終了時刻：</label>
+            <input type="time" name="endTime" step="600" th:value="${shift.endTime}">
+        </p>
+
+        <p>
+            <label>休憩時間：</label>
+            <select name="breakMinutes">
+                <option value="0" th:selected="${shift.breakMinutes == 0}">なし</option>
+                <option value="10" th:selected="${shift.breakMinutes == 10}">10分</option>
+                <option value="20" th:selected="${shift.breakMinutes == 20}">20分</option>
+                <option value="30" th:selected="${shift.breakMinutes == 30}">30分</option>
+                <option value="60" th:selected="${shift.breakMinutes == 60}">60分</option>
+            </select>
+        </p>
+
+        <button type="submit">更新</button>
+
+    </form>
+
+    <a href="/shifts">シフト一覧に戻る</a>
+
+</body>
+</html>
