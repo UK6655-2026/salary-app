@@ -1,6 +1,5 @@
 package com.example.salary_app.controller;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -71,37 +70,6 @@ public class ShiftController {
         model.addAttribute("workplaces", workplaceRepository.findAll());
 
         return "shifts";
-    }
-
-    public long calculateWageByDate(
-        LocalDate workDate,
-        LocalTime startTime,
-        LocalTime endTime,
-        int breakMinutes,
-        int regularWage,
-        int premiumWage) {
-
-        long workingMinutes = calculateWorkingMinutes(
-                startTime,
-                endTime,
-                breakMinutes
-        );
-
-        DayOfWeek dayOfWeek = workDate.getDayOfWeek();
-
-        if (dayOfWeek == DayOfWeek.SATURDAY
-                || dayOfWeek == DayOfWeek.SUNDAY) {
-
-            return workingMinutes * premiumWage / 60;
-        }
-
-        return calculateWeekdayWage(
-                startTime,
-                endTime,
-                breakMinutes,
-                regularWage,
-                premiumWage
-        );
     }
 
     @PostMapping("/shifts")

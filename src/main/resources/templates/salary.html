@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>月別給与</title>
+</head>
+<body>
+
+    <h1>月別給与</h1>
+
+    <h2>
+        <span th:text="${year}"></span>年
+        <span th:text="${month}"></span>月
+    </h2>
+
+    <p>
+        <button>前月</button>
+        <button>次月</button>
+    </p>
+
+    <h2>職場別給与</h2>
+
+    <ul>
+        <li th:each="summary : ${workplaceSummaries}">
+
+            <strong th:text="${summary.name}"></strong>
+
+            <p>
+                勤務時間：
+                <span th:text="${summary.minutes / 60}"></span>時間
+                <span th:text="${summary.minutes % 60}"></span>分
+            </p>
+
+            <p>
+                見込み給与：
+                <span th:text="${summary.wage}"></span>円
+            </p>
+
+            <form method="post" action="/salary/actual">
+
+                <input type="hidden"
+                    name="workplaceId"
+                    th:value="${summary.id}">
+
+                <input type="hidden"
+                    name="year"
+                    th:value="${year}">
+
+                <input type="hidden"
+                    name="month"
+                    th:value="${month}">
+
+                <label>実際の給与：</label>
+
+                <input type="number"
+                    name="actualAmount"
+                    min="0"
+                    placeholder="例：14200">
+
+                <button type="submit">保存</button>
+
+            </form>
+
+        </li>
+    </ul>
+
+    <h2>合計</h2>
+
+    <p>
+        勤務時間：
+        <span th:text="${totalMinutes / 60}"></span>時間
+        <span th:text="${totalMinutes % 60}"></span>分
+    </p>
+
+    <p>
+        見込み給与：
+        <span th:text="${totalWage}"></span>円
+    </p>
+
+</body>
+</html>
