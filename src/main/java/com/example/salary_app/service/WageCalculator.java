@@ -1,13 +1,19 @@
 package com.example.salary_app.service;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.DayOfWeek;
-import java.time.LocalDate;
 
 import org.springframework.stereotype.Service;
 
 @Service
 public class WageCalculator {
+
+    private final HolidayService holidayService;
+
+    public WageCalculator(HolidayService holidayService) {
+        this.holidayService = holidayService;
+    }
 
     public long calculateWorkingMinutes(
             LocalTime startTime,
@@ -20,10 +26,10 @@ public class WageCalculator {
     }
 
     public long calculateWage(
-        LocalTime startTime,
-        LocalTime endTime,
-        int breakMinutes,
-        int hourlyWage) {
+            LocalTime startTime,
+            LocalTime endTime,
+            int breakMinutes,
+            int hourlyWage) {
 
         long workingMinutes = calculateWorkingMinutes(
                 startTime,
@@ -35,11 +41,11 @@ public class WageCalculator {
     }
 
     public long calculateWeekdayWage(
-        LocalTime startTime,
-        LocalTime endTime,
-        int breakMinutes,
-        int regularWage,
-        int premiumWage) {
+            LocalTime startTime,
+            LocalTime endTime,
+            int breakMinutes,
+            int regularWage,
+            int premiumWage) {
 
         long totalMinutes = calculateWorkingMinutes(
                 startTime,
@@ -74,12 +80,12 @@ public class WageCalculator {
     }
 
     public long calculateWageByDate(
-        LocalDate workDate,
-        LocalTime startTime,
-        LocalTime endTime,
-        int breakMinutes,
-        int regularWage,
-        int premiumWage) {
+            LocalDate workDate,
+            LocalTime startTime,
+            LocalTime endTime,
+            int breakMinutes,
+            int regularWage,
+            int premiumWage) {
 
         long workingMinutes = calculateWorkingMinutes(
                 startTime,
@@ -90,7 +96,8 @@ public class WageCalculator {
         DayOfWeek dayOfWeek = workDate.getDayOfWeek();
 
         if (dayOfWeek == DayOfWeek.SATURDAY
-                || dayOfWeek == DayOfWeek.SUNDAY) {
+                || dayOfWeek == DayOfWeek.SUNDAY
+                || holidayService.isJapaneseHoliday(workDate)) {
 
             return workingMinutes * premiumWage / 60;
         }
