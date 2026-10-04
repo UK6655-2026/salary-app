@@ -1,7 +1,9 @@
 package com.example.salary_app.controller;
-
+import java.util.HashMap;
+import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Map;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -41,6 +43,7 @@ public class ShiftController {
     public String shifts(
             @RequestParam(defaultValue = "2026") int year,
             @RequestParam(defaultValue = "10") int month,
+            @RequestParam(required = false) Integer day,
             Model model) {
 
         LocalDate firstDay = LocalDate.of(year, month, 1);
@@ -57,7 +60,18 @@ public class ShiftController {
 
         model.addAttribute("nextYear", nextMonth.getYear());
         model.addAttribute("nextMonth", nextMonth.getMonthValue());
-        var shifts = shiftRepository.findAll();
+
+        List<Shift> allShifts = shiftRepository.findAll();
+
+        List<Shift> shifts = allShifts;
+
+        if (day != null) {
+            LocalDate selectedDate = LocalDate.of(year, month, day);
+
+            shifts = shifts.stream()
+                    .filter(shift -> shift.getWorkDate().equals(selectedDate))
+                    .toList();
+        }
 
         for (Shift shift : shifts) {
 
@@ -83,6 +97,29 @@ public class ShiftController {
             );
         }
 
+        Map<Integer, String> shiftTimes = new HashMap<>();
+
+        for (Shift shift : allShifts) {
+            if (shift.getWorkDate().getYear() == year
+                    && shift.getWorkDate().getMonthValue() == month) {
+
+                int dayNumber = shift.getWorkDate().getDayOfMonth();
+
+                String time =
+                        shift.getStartTime().toString()
+                        + "〜"
+                        + shift.getEndTime().toString();
+
+                shiftTimes.put(dayNumber, time);
+            }
+        }
+
+        List<Integer> shiftDays = allShifts.stream()
+                .filter(shift -> shift.getWorkDate().getYear() == year)
+                .filter(shift -> shift.getWorkDate().getMonthValue() == month)
+                .map(shift -> shift.getWorkDate().getDayOfMonth())
+                .toList();
+
         model.addAttribute("shifts", shifts);
         model.addAttribute("workplaces", workplaceRepository.findAll());
 
@@ -90,6 +127,12 @@ public class ShiftController {
         model.addAttribute("month", month);
         model.addAttribute("daysInMonth", daysInMonth);
         model.addAttribute("startDayOfWeek", startDayOfWeek);
+
+        model.addAttribute("shiftDays", shiftDays);
+        model.addAttribute("shiftTimes", shiftTimes);
+
+        model.addAttribute("selectedDate",
+                day != null ? LocalDate.of(year, month, day) : null);
 
         return "shifts";
     }

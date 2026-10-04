@@ -50,8 +50,16 @@
         <div th:each="i : ${#numbers.sequence(0, startDayOfWeek - 1)}"></div>
 
         <div class="calendar-day"
-             th:each="i : ${#numbers.sequence(1, daysInMonth)}"
-             th:text="${i}">
+            th:each="i : ${#numbers.sequence(1, daysInMonth)}">
+
+            <a th:href="@{/shifts(year=${year}, month=${month}, day=${i})}"
+            th:text="${i}">
+            </a>
+
+            <div th:if="${shiftTimes.containsKey(i)}"
+                th:text="${shiftTimes.get(i)}">
+            </div>
+
         </div>
 
     </div>
@@ -72,7 +80,8 @@
 
         <p>
             <label>勤務日：</label>
-            <input type="date" name="workDate">
+            <input type="date" name="workDate"
+                   th:value="${selectedDate}">
         </p>
 
         <p>
