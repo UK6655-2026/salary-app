@@ -42,16 +42,17 @@ public class SalaryController {
     }
 
     @GetMapping("/salary")
-    public String salary(Model model) {
-
-        int year = 2026;
-        int month = 10;
+        public String salary(
+                @RequestParam(defaultValue = "2026") int year,
+                @RequestParam(defaultValue = "10") int month,
+                Model model) {
 
         List<Shift> shifts = shiftRepository.findAll();
         List<Workplace> workplaces = workplaceRepository.findAll();
 
         long totalMinutes = 0;
         long totalWage = 0;
+        long totalActualAmount = 0;
 
         Map<Long, Long> workplaceMinutes = new HashMap<>();
         Map<Long, Long> workplaceWages = new HashMap<>();
@@ -133,14 +134,30 @@ public class SalaryController {
                 summary.put("actualAmount", null);
             }
 
+            if (salary != null) {
+                totalActualAmount += salary.getActualAmount();
+            }
+
             workplaceSummaries.add(summary);
         }
+
+        LocalDate currentMonth = LocalDate.of(year, month, 1);
+
+        LocalDate previousMonth = currentMonth.minusMonths(1);
+        LocalDate nextMonth = currentMonth.plusMonths(1);
+
+        model.addAttribute("previousYear", previousMonth.getYear());
+        model.addAttribute("previousMonth", previousMonth.getMonthValue());
+
+        model.addAttribute("nextYear", nextMonth.getYear());
+        model.addAttribute("nextMonth", nextMonth.getMonthValue());
 
         model.addAttribute("year", year);
         model.addAttribute("month", month);
         model.addAttribute("totalMinutes", totalMinutes);
         model.addAttribute("totalWage", totalWage);
         model.addAttribute("workplaceSummaries", workplaceSummaries);
+        model.addAttribute("totalActualAmount", totalActualAmount);
 
         return "salary";
     }

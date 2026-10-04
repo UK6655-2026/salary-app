@@ -14,8 +14,13 @@
     </h2>
 
     <p>
-        <button>前月</button>
-        <button>次月</button>
+        <a th:href="@{/salary(year=${previousYear}, month=${previousMonth})}">
+            前月
+        </a>
+
+        <a th:href="@{/salary(year=${nextYear}, month=${nextMonth})}">
+            次月
+        </a>
     </p>
 
     <h2>職場別給与</h2>
@@ -34,6 +39,11 @@
             <p>
                 見込み給与：
                 <span th:text="${summary.wage}"></span>円
+            </p>
+
+            <p>
+                実際の給与：
+                <span th:text="${totalActualAmount}"></span>円
             </p>
 
             <form method="post" action="/salary/actual">
@@ -55,7 +65,8 @@
                 <input type="number"
                     name="actualAmount"
                     min="0"
-                    placeholder="例：14200">
+                    placeholder="例：14200"
+                    th:value="${summary.actualAmount}">
 
                 <button type="submit">保存</button>
 
