@@ -3,10 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <title>シフト管理</title>
+
+    <style>
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 60px);
+            gap: 5px;
+        }
+
+        .calendar-day {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
 
     <h1>シフト管理</h1>
+
+    <h2>
+        <span th:text="${year}"></span>年
+        <span th:text="${month}"></span>月
+    </h2>
+
+    <p>
+        <a th:href="@{/shifts(year=${previousYear}, month=${previousMonth})}">
+            前月
+        </a>
+
+        <a th:href="@{/shifts(year=${nextYear}, month=${nextMonth})}">
+            次月
+        </a>
+    </p>
+    
+    <div class="calendar">
+
+        <div class="calendar-day">日</div>
+        <div class="calendar-day">月</div>
+        <div class="calendar-day">火</div>
+        <div class="calendar-day">水</div>
+        <div class="calendar-day">木</div>
+        <div class="calendar-day">金</div>
+        <div class="calendar-day">土</div>
+
+        <div th:each="i : ${#numbers.sequence(0, startDayOfWeek - 1)}"></div>
+
+        <div class="calendar-day"
+             th:each="i : ${#numbers.sequence(1, daysInMonth)}"
+             th:text="${i}">
+        </div>
+
+    </div>
 
     <h2>シフトを登録</h2>
 
@@ -55,17 +103,31 @@
     <h2>登録されたシフト</h2>
 
     <ul>
-        <li th:each="shift : ${shifts}">
-            勤務日：<span th:text="${shift.workDate}"></span>
-            開始：<span th:text="${shift.startTime}"></span>
-            終了：<span th:text="${shift.endTime}"></span>
 
-            <form th:action="@{/shifts/delete/{id}(id=${shift.id})}" method="post">
+        <li th:each="shift : ${shifts}">
+
+            勤務日：
+            <span th:text="${shift.workDate}"></span>
+
+            開始：
+            <span th:text="${shift.startTime}"></span>
+
+            終了：
+            <span th:text="${shift.endTime}"></span>
+
+            <form th:action="@{/shifts/delete/{id}(id=${shift.id})}"
+                  method="post">
+
                 <button type="submit">削除</button>
+
             </form>
 
-            <a th:href="@{/shifts/edit/{id}(id=${shift.id})}">編集</a>
+            <a th:href="@{/shifts/edit/{id}(id=${shift.id})}">
+                編集
+            </a>
+
         </li>
+
     </ul>
 
 </body>

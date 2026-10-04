@@ -38,8 +38,25 @@ public class ShiftController {
     }
 
     @GetMapping("/shifts")
-    public String shifts(Model model) {
+    public String shifts(
+            @RequestParam(defaultValue = "2026") int year,
+            @RequestParam(defaultValue = "10") int month,
+            Model model) {
 
+        LocalDate firstDay = LocalDate.of(year, month, 1);
+        int startDayOfWeek = firstDay.getDayOfWeek().getValue() % 7;
+        int daysInMonth = firstDay.lengthOfMonth();
+
+        LocalDate currentMonth = LocalDate.of(year, month, 1);
+
+        LocalDate previousMonth = currentMonth.minusMonths(1);
+        LocalDate nextMonth = currentMonth.plusMonths(1);
+
+        model.addAttribute("previousYear", previousMonth.getYear());
+        model.addAttribute("previousMonth", previousMonth.getMonthValue());
+
+        model.addAttribute("nextYear", nextMonth.getYear());
+        model.addAttribute("nextMonth", nextMonth.getMonthValue());
         var shifts = shiftRepository.findAll();
 
         for (Shift shift : shifts) {
@@ -68,6 +85,11 @@ public class ShiftController {
 
         model.addAttribute("shifts", shifts);
         model.addAttribute("workplaces", workplaceRepository.findAll());
+
+        model.addAttribute("year", year);
+        model.addAttribute("month", month);
+        model.addAttribute("daysInMonth", daysInMonth);
+        model.addAttribute("startDayOfWeek", startDayOfWeek);
 
         return "shifts";
     }
