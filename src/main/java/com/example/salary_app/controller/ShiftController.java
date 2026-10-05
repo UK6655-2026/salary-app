@@ -63,6 +63,10 @@ public class ShiftController {
 
         List<Shift> allShifts = shiftRepository.findAll();
 
+        allShifts.sort(
+            java.util.Comparator.comparing(Shift::getStartTime)
+        );
+
         List<Shift> shifts = allShifts;
 
         if (day != null) {
@@ -104,13 +108,23 @@ public class ShiftController {
                     && shift.getWorkDate().getMonthValue() == month) {
 
                 int dayNumber = shift.getWorkDate().getDayOfMonth();
+                
+                Workplace workplace = workplaceRepository
+                .findById(shift.getWorkplaceId())
+                .orElseThrow();
 
                 String time =
-                        shift.getStartTime().toString()
+                        workplace.getName()
+                        + " "
+                        + shift.getStartTime().toString()
                         + "〜"
                         + shift.getEndTime().toString();
 
-                shiftTimes.put(dayNumber, time);
+                shiftTimes.put(
+                    dayNumber, 
+                    shiftTimes.getOrDefault(dayNumber, "")
+                            + time
+                            + "<br>");
             }
         }
 
