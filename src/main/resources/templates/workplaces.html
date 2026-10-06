@@ -3,8 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <title>職場管理</title>
+    <style>
+        nav {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid black;
+        }
+
+        nav a {
+            margin-right: 15px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
+    <nav>
+        <a href="/workplaces">勤務先</a>
+        |
+        <a href="/shifts">シフト</a>
+        |
+        <a href="/salary">給料計算</a>
+    </nav>
 
     <h1>職場管理</h1>
 
@@ -13,17 +32,17 @@
     <form method="post" action="/workplaces">
         <p>
             <label>職場名：</label>
-            <input type="text" name="name">
+            <input type="text" name="name" required>
         </p>
 
         <p>
             <label>通常時給：</label>
-            <input type="number" name="regularWage">
+            <input type="number" name="regularWage" min="1" required>
         </p>
 
         <p>
             <label>割増時給：</label>
-            <input type="number" name="premiumWage">
+            <input type="number" name="premiumWage" min="1" required>
         </p>
 
         <button type="submit">登録</button>

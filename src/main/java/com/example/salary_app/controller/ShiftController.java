@@ -158,7 +158,20 @@ public class ShiftController {
             @RequestParam LocalTime startTime,
             @RequestParam LocalTime endTime,
             @RequestParam int breakMinutes) {
+        
+        if (!endTime.isAfter(startTime)) {
+            return "redirect:/shifts";
+        }
 
+        long workingMinutes = java.time.Duration.between(
+                startTime,
+                endTime
+        ).toMinutes();
+
+        if (breakMinutes < 0 || breakMinutes >= workingMinutes) {
+            return "redirect:/shifts";
+        }
+        
         Shift shift = new Shift();
 
         shift.setWorkDate(workDate);

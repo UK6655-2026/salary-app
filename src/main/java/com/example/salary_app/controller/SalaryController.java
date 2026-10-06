@@ -168,7 +168,10 @@ public class SalaryController {
             @RequestParam int year,
             @RequestParam int month,
             @RequestParam int actualAmount) {
-
+        
+        if (actualAmount < 0) {
+            return "redirect:/salary?year=" + year + "&month=" + month;
+        }
         Salary salary = salaryRepository
                 .findByWorkplaceIdAndSalaryYearAndSalaryMonth(
                         workplaceId,

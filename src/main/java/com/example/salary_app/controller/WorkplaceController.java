@@ -30,6 +30,10 @@ public class WorkplaceController {
             @RequestParam String name,
             @RequestParam int regularWage,
             @RequestParam int premiumWage) {
+        
+        if (regularWage <= 0 || premiumWage <= 0) {
+            return "redirect:/workplaces";
+        }
 
         Workplace workplace = new Workplace();
 
@@ -65,6 +69,10 @@ public class WorkplaceController {
             @RequestParam String name,
             @RequestParam int regularWage,
             @RequestParam int premiumWage) {
+        
+        if (regularWage <= 0 || premiumWage <= 0) {
+            return "redirect:/workplaces/edit/" + id;
+        }
 
         Workplace workplace = workplaceRepository.findById(id).orElseThrow();
 

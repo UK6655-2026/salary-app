@@ -16,9 +16,27 @@
             padding: 10px;
             text-align: center;
         }
+
+        nav {
+            margin-bottom: 20px;
+                padding: 10px;
+                border: 1px solid black;
+        }
+
+        nav a {
+            margin-right: 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
+    <nav>
+        <a href="/workplaces">勤務先</a>
+        |
+        <a href="/shifts">シフト</a>
+        |
+        <a href="/salary">給料計算</a>
+    </nav>
 
     <h1>シフト管理</h1>
 
@@ -81,17 +99,17 @@
         <p>
             <label>勤務日：</label>
             <input type="date" name="workDate"
-                   th:value="${selectedDate}">
+                   th:value="${selectedDate}" required>
         </p>
 
         <p>
             <label>開始時刻：</label>
-            <input type="time" name="startTime" step="600">
+            <input type="time" name="startTime" step="600" required>
         </p>
 
         <p>
             <label>終了時刻：</label>
-            <input type="time" name="endTime" step="600">
+            <input type="time" name="endTime" step="600" required>
         </p>
 
         <p>
