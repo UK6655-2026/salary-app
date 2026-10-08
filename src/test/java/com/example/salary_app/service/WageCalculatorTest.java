@@ -119,4 +119,22 @@ public class WageCalculatorTest {
 
         assertEquals(6875, wage);
     }
+
+    @Test
+    void 平日17時をまたぐ勤務で休憩時間を通常時給から引く() {
+
+    WageCalculator wageCalculator = new WageCalculator(
+            new HolidayService()
+    );
+
+    long wage = wageCalculator.calculateWeekdayWage(
+            LocalTime.of(16, 0),
+            LocalTime.of(18, 0),
+            30,
+            1200,
+            1250
+    );
+
+    assertEquals(1850, wage);
+}
 }

@@ -64,8 +64,19 @@ public class ShiftController {
         List<Shift> allShifts = shiftRepository.findAll();
 
         allShifts.sort(
-            java.util.Comparator.comparing(Shift::getStartTime)
+            java.util.Comparator
+                .comparing(Shift::getWorkDate)
+                .thenComparing(Shift::getStartTime)
         );
+
+        Map<Long, String> workplaceNames = new HashMap<>();
+
+        for (Workplace workplace : workplaceRepository.findAll()) {
+            workplaceNames.put(
+                workplace.getId(),
+                workplace.getName()
+            );
+        }
 
         List<Shift> shifts = allShifts;
 
@@ -135,6 +146,7 @@ public class ShiftController {
                 .toList();
 
         model.addAttribute("shifts", shifts);
+        model.addAttribute("workplaceNames", workplaceNames);
         model.addAttribute("workplaces", workplaceRepository.findAll());
 
         model.addAttribute("year", year);
@@ -230,7 +242,7 @@ public class ShiftController {
         if (breakMinutes < 0 || breakMinutes >= workingMinutes) {
             return "redirect:/shifts";
         }
-        
+
         Shift shift = shiftRepository.findById(id).orElseThrow();
 
         shift.setWorkplaceId(workplaceId);

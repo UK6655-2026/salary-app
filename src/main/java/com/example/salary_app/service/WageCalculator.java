@@ -41,39 +41,66 @@ public class WageCalculator {
     }
 
     public long calculateWeekdayWage(
-            LocalTime startTime,
-            LocalTime endTime,
-            int breakMinutes,
-            int regularWage,
-            int premiumWage) {
+                LocalTime startTime,
+                LocalTime endTime,
+                int breakMinutes,
+                int regularWage,
+                int premiumWage) {
 
-        long totalMinutes = calculateWorkingMinutes(
-                startTime,
-                endTime,
-                breakMinutes
+        if (endTime.isBefore(startTime)
+                || endTime.equals(startTime)) {
+                return 0;
+        }
+
+        LocalTime premiumStart = LocalTime.of(17, 0);
+
+        // 17時より前に働いた時間
+        long regularMinutes;
+
+        if (endTime.isBefore(premiumStart)
+                || endTime.equals(premiumStart)) {
+
+                regularMinutes = java.time.Duration.between(
+                        startTime,
+                        endTime
+                ).toMinutes();
+
+        } else if (startTime.isBefore(premiumStart)) {
+
+                regularMinutes = java.time.Duration.between(
+                        startTime,
+                        premiumStart
+                ).toMinutes();
+
+        } else {
+
+                regularMinutes = 0;
+        }
+
+        // 休憩時間は通常時給の時間帯から差し引く
+        regularMinutes = Math.max(
+                0,
+                regularMinutes - breakMinutes
         );
 
-        if (endTime.isBefore(LocalTime.of(17, 0))
-                || endTime.equals(LocalTime.of(17, 0))) {
+        // 17時以降の勤務時間
+        long premiumMinutes = 0;
 
-            return totalMinutes * regularWage / 60;
+        if (endTime.isAfter(premiumStart)
+                && !startTime.isAfter(premiumStart)) {
+
+                premiumMinutes = java.time.Duration.between(
+                        premiumStart,
+                        endTime
+                ).toMinutes();
+
+        } else if (!startTime.isBefore(premiumStart)) {
+
+                premiumMinutes = java.time.Duration.between(
+                        startTime,
+                        endTime
+                ).toMinutes();
         }
-
-        if (startTime.isAfter(LocalTime.of(17, 0))
-                || startTime.equals(LocalTime.of(17, 0))) {
-
-            return totalMinutes * premiumWage / 60;
-        }
-
-        long regularMinutes = java.time.Duration.between(
-                startTime,
-                LocalTime.of(17, 0)
-        ).toMinutes();
-
-        long premiumMinutes = java.time.Duration.between(
-                LocalTime.of(17, 0),
-                endTime
-        ).toMinutes();
 
         return (regularMinutes * regularWage / 60)
                 + (premiumMinutes * premiumWage / 60);

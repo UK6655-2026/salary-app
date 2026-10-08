@@ -136,6 +136,9 @@
             勤務日：
             <span th:text="${shift.workDate}"></span>
 
+            勤務先：
+            <span th:text="${workplaceNames.get(shift.workplaceId)}"></span>
+
             開始：
             <span th:text="${shift.startTime}"></span>
 
