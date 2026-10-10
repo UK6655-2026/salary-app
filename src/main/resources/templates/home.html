@@ -1,14 +1,70 @@
+
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>給料管理</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 0 20px;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .menu {
+            display: grid;
+            gap: 16px;
+            margin-top: 30px;
+        }
+
+        .menu a {
+            display: block;
+            padding: 18px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            color: #222;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        .menu a:hover {
+            background-color: #f2f2f2;
+        }
+
+        .description {
+            display: block;
+            margin-top: 6px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
-
     <h1>給料管理</h1>
+    <p style="text-align: center;">給料計算アプリへようこそ</p>
 
-    <p>給料計算アプリへようこそ</p>
+    <div class="menu">
+        <a th:href="@{/workplaces}">
+            職場管理
+            <span class="description">職場の登録・編集・削除</span>
+        </a>
 
+        <a th:href="@{/shifts}">
+            シフト管理
+            <span class="description">シフトの登録・確認・編集</span>
+        </a>
+
+        <a th:href="@{/salary}">
+            給料計算
+            <span class="description">月ごとの見込み給料・実際の給料を確認</span>
+        </a>
+    </div>
 </body>
 </html>

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -36,14 +37,31 @@
         </p>
 
         <p>
-            <label>通常時給：</label>
-            <input type="number" name="regularWage" min="1" required>
+            <label>給与方式：</label>
+            <select name="payType" id="payType" required>
+                <option value="HOURLY">時給制</option>
+                <option value="PER_LESSON">コマ制</option>
+            </select>
         </p>
 
-        <p>
-            <label>割増時給：</label>
-            <input type="number" name="premiumWage" min="1" required>
-        </p>
+        <div id="hourlyFields">
+            <p>
+                <label>通常時給：</label>
+                <input type="number" name="regularWage" min="1" value="1200">
+            </p>
+
+            <p>
+                <label>割増時給：</label>
+                <input type="number" name="premiumWage" min="1" value="1250">
+            </p>
+        </div>
+
+        <div id="lessonFields" hidden>
+            <p>
+                <label>1コマあたりの料金（円）：</label>
+                <input type="number" name="lessonWage" min="1" value="0" disabled>
+            </p>
+        </div>
 
         <button type="submit">登録</button>
     </form>
@@ -53,10 +71,21 @@
     <ul>
         <li th:each="workplace : ${workplaces}">
             <span th:text="${workplace.name}"></span>
-            （通常時給：<span th:text="${workplace.regularWage}"></span>円）
-            （割増時給：<span th:text="${workplace.premiumWage}"></span>円）
 
-            <form th:action="@{/workplaces/delete/{id}(id=${workplace.id})}" method="post">
+            <span th:if="${workplace.payType == null or workplace.payType == 'HOURLY'}">
+                （時給制・通常：
+                <span th:text="${workplace.regularWage}"></span>円、
+                割増：
+                <span th:text="${workplace.premiumWage}"></span>円）
+            </span>
+
+            <span th:if="${workplace.payType == 'PER_LESSON'}">
+                （コマ制・1コマ：
+                <span th:text="${workplace.lessonWage}"></span>円）
+            </span>
+
+            <form th:action="@{/workplaces/delete/{id}(id=${workplace.id})}"
+                  method="post">
                 <button type="submit">削除</button>
             </form>
 
@@ -64,5 +93,38 @@
         </li>
     </ul>
 
+    <script>
+        const payType = document.getElementById("payType");
+        const hourlyFields = document.getElementById("hourlyFields");
+        const lessonFields = document.getElementById("lessonFields");
+
+        const regularWage = document.querySelector(
+            'input[name="regularWage"]'
+        );
+        const premiumWage = document.querySelector(
+            'input[name="premiumWage"]'
+        );
+        const lessonWage = document.querySelector(
+            'input[name="lessonWage"]'
+        );
+
+        function updatePayFields() {
+            const isHourly = payType.value === "HOURLY";
+
+            hourlyFields.hidden = !isHourly;
+            lessonFields.hidden = isHourly;
+
+            regularWage.disabled = !isHourly;
+            premiumWage.disabled = !isHourly;
+            regularWage.required = isHourly;
+            premiumWage.required = isHourly;
+
+            lessonWage.disabled = isHourly;
+            lessonWage.required = !isHourly;
+        }
+
+        payType.addEventListener("change", updatePayFields);
+        updatePayFields();
+    </script>
 </body>
 </html>

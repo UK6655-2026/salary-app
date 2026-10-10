@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -19,8 +20,8 @@
 
         nav {
             margin-bottom: 20px;
-                padding: 10px;
-                border: 1px solid black;
+            padding: 10px;
+            border: 1px solid black;
         }
 
         nav a {
@@ -46,17 +47,11 @@
     </h2>
 
     <p>
-        <a th:href="@{/shifts(year=${previousYear}, month=${previousMonth})}">
-            前月
-        </a>
-
-        <a th:href="@{/shifts(year=${nextYear}, month=${nextMonth})}">
-            次月
-        </a>
+        <a th:href="@{/shifts(year=${previousYear}, month=${previousMonth})}">前月</a>
+        <a th:href="@{/shifts(year=${nextYear}, month=${nextMonth})}">次月</a>
     </p>
-    
-    <div class="calendar">
 
+    <div class="calendar">
         <div class="calendar-day">日</div>
         <div class="calendar-day">月</div>
         <div class="calendar-day">火</div>
@@ -68,30 +63,25 @@
         <div th:each="i : ${#numbers.sequence(0, startDayOfWeek - 1)}"></div>
 
         <div class="calendar-day"
-            th:each="i : ${#numbers.sequence(1, daysInMonth)}">
-
+             th:each="i : ${#numbers.sequence(1, daysInMonth)}">
             <a th:href="@{/shifts(year=${year}, month=${month}, day=${i})}"
-            th:text="${i}">
-            </a>
+               th:text="${i}"></a>
 
             <div th:if="${shiftTimes.containsKey(i)}"
-                 th:utext="${shiftTimes.get(i)}">
-            </div>
-
+                 th:utext="${shiftTimes.get(i)}"></div>
         </div>
-
     </div>
 
     <h2>シフトを登録</h2>
 
     <form method="post" action="/shifts">
-
         <p>
             <label>職場：</label>
-            <select name="workplaceId">
+            <select name="workplaceId" id="workplaceId" required>
                 <option th:each="workplace : ${workplaces}"
                         th:value="${workplace.id}"
-                        th:text="${workplace.name}">
+                        th:text="${workplace.name}"
+                        th:attr="data-pay-type=${workplace.payType == 'PER_LESSON' ? 'PER_LESSON' : 'HOURLY'}">
                 </option>
             </select>
         </p>
@@ -102,63 +92,102 @@
                    th:value="${selectedDate}" required>
         </p>
 
-        <p>
-            <label>開始時刻：</label>
-            <input type="time" name="startTime" step="600" required>
-        </p>
+        <div id="hourlyFields">
+            <p>
+                <label>開始時刻：</label>
+                <input type="time" name="startTime" step="600">
+            </p>
 
-        <p>
-            <label>終了時刻：</label>
-            <input type="time" name="endTime" step="600" required>
-        </p>
+            <p>
+                <label>終了時刻：</label>
+                <input type="time" name="endTime" step="600">
+            </p>
 
-        <p>
-            <label>休憩時間：</label>
-            <select name="breakMinutes">
-                <option value="0">なし</option>
-                <option value="10">10分</option>
-                <option value="20">20分</option>
-                <option value="30">30分</option>
-                <option value="60">60分</option>
-            </select>
-        </p>
+            <p>
+                <label>休憩時間：</label>
+                <select name="breakMinutes">
+                    <option value="0">なし</option>
+                    <option value="10">10分</option>
+                    <option value="20">20分</option>
+                    <option value="30">30分</option>
+                    <option value="60">60分</option>
+                </select>
+            </p>
+        </div>
+
+        <div id="lessonFields" hidden>
+            <p>
+                <label>コマ数：</label>
+                <input type="number" name="lessonCount" min="1" step="1">
+            </p>
+        </div>
 
         <button type="submit">登録</button>
-
     </form>
 
     <h2>登録されたシフト</h2>
 
     <ul>
-
         <li th:each="shift : ${shifts}">
-
             勤務日：
             <span th:text="${shift.workDate}"></span>
 
             勤務先：
             <span th:text="${workplaceNames.get(shift.workplaceId)}"></span>
 
-            開始：
-            <span th:text="${shift.startTime}"></span>
+            <span th:if="${shift.payType == 'PER_LESSON'}">
+                コマ数：
+                <span th:text="${shift.lessonCount}"></span>コマ
+            </span>
 
-            終了：
-            <span th:text="${shift.endTime}"></span>
+            <span th:if="${shift.payType == null or shift.payType == 'HOURLY'}">
+                開始：
+                <span th:text="${shift.startTime}"></span>
+                終了：
+                <span th:text="${shift.endTime}"></span>
+                （休憩 <span th:text="${shift.breakMinutes}"></span>分）
+            </span>
 
             <form th:action="@{/shifts/delete/{id}(id=${shift.id})}"
                   method="post">
-
                 <button type="submit">削除</button>
-
             </form>
 
-            <a th:href="@{/shifts/edit/{id}(id=${shift.id})}">
-                編集
-            </a>
-
+            <a th:href="@{/shifts/edit/{id}(id=${shift.id})}">編集</a>
         </li>
-
     </ul>
 
+    <script>
+        const workplaceSelect = document.getElementById("workplaceId");
+        const hourlyFields = document.getElementById("hourlyFields");
+        const lessonFields = document.getElementById("lessonFields");
+
+        function updateFields() {
+            const selectedOption =
+                workplaceSelect.options[workplaceSelect.selectedIndex];
+
+            const payType = selectedOption
+                ? selectedOption.dataset.payType
+                : "HOURLY";
+
+            const isLesson = payType === "PER_LESSON";
+
+            hourlyFields.hidden = isLesson;
+            lessonFields.hidden = !isLesson;
+
+            hourlyFields.querySelectorAll("input, select").forEach(input => {
+                input.disabled = isLesson;
+                input.required = !isLesson
+                    && (input.name === "startTime" || input.name === "endTime");
+            });
+
+            const lessonInput = lessonFields.querySelector("input");
+            lessonInput.disabled = !isLesson;
+            lessonInput.required = isLesson;
+        }
+
+        workplaceSelect.addEventListener("change", updateFields);
+        updateFields();
+    </script>
 </body>
 </html>

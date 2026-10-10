@@ -1,111 +1,106 @@
+
 package com.example.salary_app.service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.DayOfWeek;
 
 import org.springframework.stereotype.Service;
 
 @Service
 public class WageCalculator {
 
-    private final HolidayService holidayService;
-
-    public WageCalculator(HolidayService holidayService) {
-        this.holidayService = holidayService;
-    }
-
-    public long calculateWorkingMinutes(
+    /**
+     * 勤務時間を分単位で計算する
+     */
+    public int calculateWorkingMinutes(
             LocalTime startTime,
             LocalTime endTime,
             int breakMinutes) {
 
-        long minutes = java.time.Duration.between(startTime, endTime).toMinutes();
+        if (startTime == null || endTime == null) {
+            return 0;
+        }
 
-        return minutes - breakMinutes;
+        int start = startTime.getHour() * 60 + startTime.getMinute();
+        int end = endTime.getHour() * 60 + endTime.getMinute();
+
+        if (end <= start) {
+            return 0;
+        }
+
+        return Math.max(0, end - start - breakMinutes);
     }
 
+    /**
+     * 時給と勤務時間から給与を計算する
+     */
     public long calculateWage(
             LocalTime startTime,
             LocalTime endTime,
             int breakMinutes,
             int hourlyWage) {
 
-        long workingMinutes = calculateWorkingMinutes(
-                startTime,
-                endTime,
-                breakMinutes
-        );
+        int minutes = calculateWorkingMinutes(
+                startTime, endTime, breakMinutes);
 
-        return workingMinutes * hourlyWage / 60;
+        return (long) minutes * hourlyWage / 60;
     }
 
+    /**
+     * 平日について、17時より前と17時以降の給与を計算する
+     */
     public long calculateWeekdayWage(
-                LocalTime startTime,
-                LocalTime endTime,
-                int breakMinutes,
-                int regularWage,
-                int premiumWage) {
+            LocalTime startTime,
+            LocalTime endTime,
+            int breakMinutes,
+            int regularWage,
+            int premiumWage) {
 
-        if (endTime.isBefore(startTime)
-                || endTime.equals(startTime)) {
-                return 0;
+        if (startTime == null || endTime == null || !endTime.isAfter(startTime)) {
+            return 0;
         }
 
         LocalTime premiumStart = LocalTime.of(17, 0);
 
-        // 17時より前に働いた時間
-        long regularMinutes;
-
-        if (endTime.isBefore(premiumStart)
-                || endTime.equals(premiumStart)) {
-
-                regularMinutes = java.time.Duration.between(
-                        startTime,
-                        endTime
-                ).toMinutes();
-
-        } else if (startTime.isBefore(premiumStart)) {
-
-                regularMinutes = java.time.Duration.between(
-                        startTime,
-                        premiumStart
-                ).toMinutes();
-
-        } else {
-
-                regularMinutes = 0;
-        }
-
-        // 休憩時間は通常時給の時間帯から差し引く
-        regularMinutes = Math.max(
-                0,
-                regularMinutes - breakMinutes
-        );
-
-        // 17時以降の勤務時間
+        long regularMinutes = 0;
         long premiumMinutes = 0;
 
-        if (endTime.isAfter(premiumStart)
-                && !startTime.isAfter(premiumStart)) {
+        if (startTime.isBefore(premiumStart)) {
+            LocalTime regularEnd =
+                    endTime.isBefore(premiumStart) ? endTime : premiumStart;
 
-                premiumMinutes = java.time.Duration.between(
-                        premiumStart,
-                        endTime
-                ).toMinutes();
-
-        } else if (!startTime.isBefore(premiumStart)) {
-
-                premiumMinutes = java.time.Duration.between(
-                        startTime,
-                        endTime
-                ).toMinutes();
+            regularMinutes = Math.max(
+                    0,
+                    java.time.Duration.between(startTime, regularEnd).toMinutes());
         }
 
-        return (regularMinutes * regularWage / 60)
-                + (premiumMinutes * premiumWage / 60);
+        if (endTime.isAfter(premiumStart)) {
+            LocalTime premiumBegin =
+                    startTime.isAfter(premiumStart) ? startTime : premiumStart;
+
+            premiumMinutes = Math.max(
+                    0,
+                    java.time.Duration.between(premiumBegin, endTime).toMinutes());
+        }
+
+        long totalMinutes = regularMinutes + premiumMinutes;
+        long actualBreak = Math.min(Math.max(0, breakMinutes), totalMinutes);
+
+        // 休憩時間は17時より前の勤務時間から優先して差し引く
+        long regularBreak = Math.min(regularMinutes, actualBreak);
+        long premiumBreak = actualBreak - regularBreak;
+
+        regularMinutes -= regularBreak;
+        premiumMinutes -= premiumBreak;
+
+        return (regularMinutes * regularWage
+                + premiumMinutes * premiumWage) / 60;
     }
 
+    /**
+     * 土日・祝日は全時間を割増時給、それ以外は17時を境に計算する
+     */
+    
     public long calculateWageByDate(
             LocalDate workDate,
             LocalTime startTime,
@@ -114,27 +109,22 @@ public class WageCalculator {
             int regularWage,
             int premiumWage) {
 
-        long workingMinutes = calculateWorkingMinutes(
-                startTime,
-                endTime,
-                breakMinutes
-        );
+        if (workDate == null || startTime == null || endTime == null) {
+            return 0;
+        }
 
-        DayOfWeek dayOfWeek = workDate.getDayOfWeek();
+        boolean weekend =
+                workDate.getDayOfWeek() == java.time.DayOfWeek.SATURDAY
+                || workDate.getDayOfWeek() == java.time.DayOfWeek.SUNDAY;
 
-        if (dayOfWeek == DayOfWeek.SATURDAY
-                || dayOfWeek == DayOfWeek.SUNDAY
-                || holidayService.isJapaneseHoliday(workDate)) {
-
-            return workingMinutes * premiumWage / 60;
+        if (weekend) {
+            return calculateWage(
+                    startTime, endTime, breakMinutes, premiumWage);
         }
 
         return calculateWeekdayWage(
-                startTime,
-                endTime,
-                breakMinutes,
-                regularWage,
-                premiumWage
-        );
+                startTime, endTime, breakMinutes,
+                regularWage, premiumWage);
     }
+
 }

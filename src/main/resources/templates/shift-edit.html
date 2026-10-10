@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -14,46 +15,94 @@
 
         <p>
             <label>職場：</label>
-            <select name="workplaceId">
+            <select name="workplaceId" id="workplaceId" required>
                 <option th:each="workplace : ${workplaces}"
                         th:value="${workplace.id}"
                         th:text="${workplace.name}"
-                        th:selected="${workplace.id == shift.workplaceId}">
+                        th:selected="${workplace.id == shift.workplaceId}"
+                        th:attr="data-pay-type=${workplace.payType == 'PER_LESSON' ? 'PER_LESSON' : 'HOURLY'}">
                 </option>
             </select>
         </p>
 
         <p>
             <label>勤務日：</label>
-            <input type="date" name="workDate" th:value="${shift.workDate}">
+            <input type="date" name="workDate"
+                   th:value="${shift.workDate}" required>
         </p>
 
-        <p>
-            <label>開始時刻：</label>
-            <input type="time" name="startTime" step="600" th:value="${shift.startTime}">
-        </p>
+        <div id="hourlyFields">
+            <p>
+                <label>開始時刻：</label>
+                <input type="time" name="startTime" step="600"
+                       th:value="${shift.startTime}">
+            </p>
 
-        <p>
-            <label>終了時刻：</label>
-            <input type="time" name="endTime" step="600" th:value="${shift.endTime}">
-        </p>
+            <p>
+                <label>終了時刻：</label>
+                <input type="time" name="endTime" step="600"
+                       th:value="${shift.endTime}">
+            </p>
 
-        <p>
-            <label>休憩時間：</label>
-            <select name="breakMinutes">
-                <option value="0" th:selected="${shift.breakMinutes == 0}">なし</option>
-                <option value="10" th:selected="${shift.breakMinutes == 10}">10分</option>
-                <option value="20" th:selected="${shift.breakMinutes == 20}">20分</option>
-                <option value="30" th:selected="${shift.breakMinutes == 30}">30分</option>
-                <option value="60" th:selected="${shift.breakMinutes == 60}">60分</option>
-            </select>
-        </p>
+            <p>
+                <label>休憩時間：</label>
+                <select name="breakMinutes">
+                    <option value="0" th:selected="${shift.breakMinutes == 0}">なし</option>
+                    <option value="10" th:selected="${shift.breakMinutes == 10}">10分</option>
+                    <option value="20" th:selected="${shift.breakMinutes == 20}">20分</option>
+                    <option value="30" th:selected="${shift.breakMinutes == 30}">30分</option>
+                    <option value="60" th:selected="${shift.breakMinutes == 60}">60分</option>
+                </select>
+            </p>
+        </div>
+
+        <div id="lessonFields" hidden>
+            <p>
+                <label>コマ数：</label>
+                <input type="number" name="lessonCount"
+                       min="1" step="1"
+                       th:value="${shift.lessonCount}">
+            </p>
+        </div>
 
         <button type="submit">更新</button>
 
     </form>
 
     <a href="/shifts">シフト一覧に戻る</a>
+
+    <script>
+        const workplaceSelect = document.getElementById("workplaceId");
+        const hourlyFields = document.getElementById("hourlyFields");
+        const lessonFields = document.getElementById("lessonFields");
+
+        function updateFields() {
+            const selectedOption =
+                workplaceSelect.options[workplaceSelect.selectedIndex];
+
+            const payType = selectedOption
+                ? selectedOption.dataset.payType
+                : "HOURLY";
+
+            const isLesson = payType === "PER_LESSON";
+
+            hourlyFields.hidden = isLesson;
+            lessonFields.hidden = !isLesson;
+
+            hourlyFields.querySelectorAll("input, select").forEach(input => {
+                input.disabled = isLesson;
+                input.required = !isLesson
+                    && (input.name === "startTime" || input.name === "endTime");
+            });
+
+            const lessonInput = lessonFields.querySelector("input");
+            lessonInput.disabled = !isLesson;
+            lessonInput.required = isLesson;
+        }
+
+        workplaceSelect.addEventListener("change", updateFields);
+        updateFields();
+    </script>
 
 </body>
 </html>

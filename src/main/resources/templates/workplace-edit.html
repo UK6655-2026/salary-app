@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -14,24 +15,85 @@
 
         <p>
             <label>職場名：</label>
-            <input type="text" name="name" th:value="${workplace.name}">
+            <input type="text" name="name"
+                   th:value="${workplace.name}" required>
         </p>
 
         <p>
-            <label>通常時給：</label>
-            <input type="number" name="regularWage" th:value="${workplace.regularWage}">
+            <label>給与方式：</label>
+            <select name="payType" id="payType" required>
+                <option value="HOURLY"
+                        th:selected="${workplace.payType == 'HOURLY'}">
+                    時給制
+                </option>
+                <option value="PER_LESSON"
+                        th:selected="${workplace.payType == 'PER_LESSON'}">
+                    コマ制
+                </option>
+            </select>
         </p>
 
-        <p>
-            <label>割増時給：</label>
-            <input type="number" name="premiumWage" th:value="${workplace.premiumWage}">
-        </p>
+        <div id="hourlyFields">
+            <p>
+                <label>通常時給：</label>
+                <input type="number" name="regularWage"
+                       min="1" th:value="${workplace.regularWage}">
+            </p>
+
+            <p>
+                <label>割増時給：</label>
+                <input type="number" name="premiumWage"
+                       min="1" th:value="${workplace.premiumWage}">
+            </p>
+        </div>
+
+        <div id="lessonFields" hidden>
+            <p>
+                <label>1コマあたりの料金（円）：</label>
+                <input type="number" name="lessonWage"
+                       min="1" th:value="${workplace.lessonWage}" disabled>
+            </p>
+        </div>
 
         <button type="submit">更新</button>
 
     </form>
 
     <a href="/workplaces">職場一覧に戻る</a>
+
+    <script>
+        const payType = document.getElementById("payType");
+        const hourlyFields = document.getElementById("hourlyFields");
+        const lessonFields = document.getElementById("lessonFields");
+
+        const regularWage = document.querySelector(
+            'input[name="regularWage"]'
+        );
+        const premiumWage = document.querySelector(
+            'input[name="premiumWage"]'
+        );
+        const lessonWage = document.querySelector(
+            'input[name="lessonWage"]'
+        );
+
+        function updatePayFields() {
+            const isHourly = payType.value === "HOURLY";
+
+            hourlyFields.hidden = !isHourly;
+            lessonFields.hidden = isHourly;
+
+            regularWage.disabled = !isHourly;
+            premiumWage.disabled = !isHourly;
+            regularWage.required = isHourly;
+            premiumWage.required = isHourly;
+
+            lessonWage.disabled = isHourly;
+            lessonWage.required = !isHourly;
+        }
+
+        payType.addEventListener("change", updatePayFields);
+        updatePayFields();
+    </script>
 
 </body>
 </html>

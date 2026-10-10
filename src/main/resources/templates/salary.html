@@ -6,13 +6,23 @@
     <style>
         nav {
             margin-bottom: 20px;
-                padding: 10px;
-                border: 1px solid black;
+            padding: 10px;
+            border: 1px solid black;
         }
 
         nav a {
             margin-right: 10px;
             font-weight: bold;
+        }
+
+        .workplace {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+        }
+
+        input[type="number"] {
+            width: 140px;
         }
     </style>
 </head>
@@ -36,7 +46,7 @@
         <a th:href="@{/salary(year=${previousYear}, month=${previousMonth})}">
             前月
         </a>
-
+        |
         <a th:href="@{/salary(year=${nextYear}, month=${nextMonth})}">
             次月
         </a>
@@ -44,67 +54,86 @@
 
     <h2>職場別給与</h2>
 
-    <ul>
-        <li th:each="summary : ${workplaceSummaries}">
+    <div th:if="${#lists.isEmpty(workplaceSummaries)}">
+        <p>勤務先がまだ登録されていません。</p>
+    </div>
 
-            <strong th:text="${summary.name}"></strong>
+    <div th:each="summary : ${workplaceSummaries}" class="workplace">
 
+        <h3 th:text="${summary.name}"></h3>
+
+        <div th:if="${summary.payType == 'PER_LESSON'}">
+            <p>
+                勤務コマ数：
+                <span th:text="${summary.lessons}"></span>コマ
+            </p>
+        </div>
+
+        <div th:unless="${summary.payType == 'PER_LESSON'}">
             <p>
                 勤務時間：
                 <span th:text="${summary.minutes / 60}"></span>時間
                 <span th:text="${summary.minutes % 60}"></span>分
             </p>
+        </div>
 
-            <p>
-                見込み給与：
+        <p>
+            見込み給与：
+            <strong>
                 <span th:text="${summary.wage}"></span>円
-            </p>
+            </strong>
+        </p>
 
-            <p>
-                実際の給与：
-                <span th:text="${summary.actualAmount}"></span>円
-            </p>
+        <p>
+            実際の給与：
+            <span th:if="${summary.actualAmount != null}"
+                  th:text="${summary.actualAmount + '円'}"></span>
+            <span th:if="${summary.actualAmount == null}">
+                未入力
+            </span>
+        </p>
 
-            <form method="post" action="/salary/actual">
+        <form method="post" action="/salary/actual">
+            <input type="hidden"
+                   name="workplaceId"
+                   th:value="${summary.id}">
 
-                <input type="hidden"
-                    name="workplaceId"
-                    th:value="${summary.id}">
+            <input type="hidden"
+                   name="year"
+                   th:value="${year}">
 
-                <input type="hidden"
-                    name="year"
-                    th:value="${year}">
+            <input type="hidden"
+                   name="month"
+                   th:value="${month}">
 
-                <input type="hidden"
-                    name="month"
-                    th:value="${month}">
+            <label>実際の給与（円）：</label>
+            <input type="number"
+                   name="actualAmount"
+                   min="0"
+                   required
+                   placeholder="例：14200"
+                   th:value="${summary.actualAmount}">
 
-                <label>実際の給与：</label>
-
-                <input type="number"
-                    name="actualAmount"
-                    min="0"
-                    placeholder="例：14200"
-                    th:value="${summary.actualAmount}">
-
-                <button type="submit">保存</button>
-
-            </form>
-
-        </li>
-    </ul>
+            <button type="submit">保存</button>
+        </form>
+    </div>
 
     <h2>合計</h2>
 
     <p>
-        勤務時間：
+        時給制の勤務時間合計：
         <span th:text="${totalMinutes / 60}"></span>時間
         <span th:text="${totalMinutes % 60}"></span>分
     </p>
 
     <p>
-        見込み給与：
-        <span th:text="${totalWage}"></span>円
+        見込み給与合計：
+        <strong><span th:text="${totalWage}"></span>円</strong>
+    </p>
+
+    <p>
+        実際の給与合計：
+        <strong><span th:text="${totalActualAmount}"></span>円</strong>
     </p>
 
 </body>

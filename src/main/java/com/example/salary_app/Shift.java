@@ -1,3 +1,4 @@
+
 package com.example.salary_app;
 
 import java.time.LocalDate;
@@ -19,6 +20,9 @@ public class Shift {
 
     private Long workplaceId;
 
+    // 給与方式：時給制またはコマ制
+    private String payType = "HOURLY";
+
     private LocalTime startTime;
 
     private LocalTime endTime;
@@ -28,6 +32,9 @@ public class Shift {
     private int regularWage;
 
     private int premiumWage;
+
+    // コマ制で働いたコマ数
+    private Integer lessonCount;
 
     public Long getId() {
         return id;
@@ -39,6 +46,10 @@ public class Shift {
 
     public Long getWorkplaceId() {
         return workplaceId;
+    }
+
+    public String getPayType() {
+        return payType;
     }
 
     public LocalTime getStartTime() {
@@ -61,12 +72,20 @@ public class Shift {
         return premiumWage;
     }
 
+    public Integer getLessonCount() {
+        return lessonCount;
+    }
+
     public void setWorkDate(LocalDate workDate) {
         this.workDate = workDate;
     }
 
     public void setWorkplaceId(Long workplaceId) {
         this.workplaceId = workplaceId;
+    }
+
+    public void setPayType(String payType) {
+        this.payType = payType;
     }
 
     public void setStartTime(LocalTime startTime) {
@@ -87,5 +106,9 @@ public class Shift {
 
     public void setPremiumWage(int premiumWage) {
         this.premiumWage = premiumWage;
+    }
+
+    public void setLessonCount(Integer lessonCount) {
+        this.lessonCount = lessonCount;
     }
 }

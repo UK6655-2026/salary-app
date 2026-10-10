@@ -13,10 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.salary_app.Salary;
-import com.example.salary_app.repository.SalaryRepository;
-
 import com.example.salary_app.Shift;
 import com.example.salary_app.Workplace;
+import com.example.salary_app.repository.SalaryRepository;
 import com.example.salary_app.repository.ShiftRepository;
 import com.example.salary_app.repository.WorkplaceRepository;
 import com.example.salary_app.service.WageCalculator;
@@ -42,10 +41,15 @@ public class SalaryController {
     }
 
     @GetMapping("/salary")
-        public String salary(
-                @RequestParam(defaultValue = "2026") int year,
-                @RequestParam(defaultValue = "10") int month,
-                Model model) {
+    public String salary(
+            @RequestParam(defaultValue = "2026") int year,
+            @RequestParam(defaultValue = "10") int month,
+            Model model) {
+
+        // 存在しない年月が指定された場合はエラーにする
+        if (month < 1 || month > 12) {
+            return "redirect:/salary";
+        }
 
         List<Shift> shifts = shiftRepository.findAll();
         List<Workplace> workplaces = workplaceRepository.findAll();
@@ -56,37 +60,62 @@ public class SalaryController {
 
         Map<Long, Long> workplaceMinutes = new HashMap<>();
         Map<Long, Long> workplaceWages = new HashMap<>();
+        Map<Long, Long> workplaceLessons = new HashMap<>();
 
         for (Shift shift : shifts) {
 
             LocalDate workDate = shift.getWorkDate();
 
-            if (workDate.getYear() != year
+            if (workDate == null
+                    || workDate.getYear() != year
                     || workDate.getMonthValue() != month) {
                 continue;
             }
 
-            long workingMinutes =
-                    wageCalculator.calculateWorkingMinutes(
-                            shift.getStartTime(),
-                            shift.getEndTime(),
-                            shift.getBreakMinutes()
-                    );
+            Long workplaceId = shift.getWorkplaceId();
 
-            long wage =
-                    wageCalculator.calculateWageByDate(
-                            shift.getWorkDate(),
-                            shift.getStartTime(),
-                            shift.getEndTime(),
-                            shift.getBreakMinutes(),
-                            shift.getRegularWage(),
-                            shift.getPremiumWage()
-                    );
+            long workingMinutes = 0;
+            long wage = 0;
+
+            if ("PER_LESSON".equals(shift.getPayType())) {
+
+                // コマ制：コマ数 × 1コマあたりの給料
+                int lessonCount = shift.getLessonCount() == null
+                        ? 0
+                        : shift.getLessonCount();
+
+                wage = (long) shift.getPremiumWage() * 0
+                        + (long) lessonCount * getLessonWage(
+                                workplaceId, workplaces);
+
+                workplaceLessons.put(
+                        workplaceId,
+                        workplaceLessons.getOrDefault(workplaceId, 0L)
+                                + lessonCount
+                );
+
+            } else if (shift.getStartTime() != null
+                    && shift.getEndTime() != null) {
+
+                // 時給制：従来どおり勤務時間と時給から計算
+                workingMinutes = wageCalculator.calculateWorkingMinutes(
+                        shift.getStartTime(),
+                        shift.getEndTime(),
+                        shift.getBreakMinutes()
+                );
+
+                wage = wageCalculator.calculateWageByDate(
+                        workDate,
+                        shift.getStartTime(),
+                        shift.getEndTime(),
+                        shift.getBreakMinutes(),
+                        shift.getRegularWage(),
+                        shift.getPremiumWage()
+                );
+            }
 
             totalMinutes += workingMinutes;
             totalWage += wage;
-
-            Long workplaceId = shift.getWorkplaceId();
 
             workplaceMinutes.put(
                     workplaceId,
@@ -109,16 +138,19 @@ public class SalaryController {
 
             summary.put("name", workplace.getName());
             summary.put("id", workplace.getId());
-
             summary.put(
                     "minutes",
                     workplaceMinutes.getOrDefault(workplace.getId(), 0L)
             );
-
             summary.put(
                     "wage",
                     workplaceWages.getOrDefault(workplace.getId(), 0L)
             );
+            summary.put(
+                    "lessons",
+                    workplaceLessons.getOrDefault(workplace.getId(), 0L)
+            );
+            summary.put("payType", workplace.getPayType());
 
             Salary salary = salaryRepository
                     .findByWorkplaceIdAndSalaryYearAndSalaryMonth(
@@ -130,25 +162,20 @@ public class SalaryController {
 
             if (salary != null) {
                 summary.put("actualAmount", salary.getActualAmount());
+                totalActualAmount += salary.getActualAmount();
             } else {
                 summary.put("actualAmount", null);
-            }
-
-            if (salary != null) {
-                totalActualAmount += salary.getActualAmount();
             }
 
             workplaceSummaries.add(summary);
         }
 
         LocalDate currentMonth = LocalDate.of(year, month, 1);
-
         LocalDate previousMonth = currentMonth.minusMonths(1);
         LocalDate nextMonth = currentMonth.plusMonths(1);
 
         model.addAttribute("previousYear", previousMonth.getYear());
         model.addAttribute("previousMonth", previousMonth.getMonthValue());
-
         model.addAttribute("nextYear", nextMonth.getYear());
         model.addAttribute("nextMonth", nextMonth.getMonthValue());
 
@@ -162,16 +189,31 @@ public class SalaryController {
         return "salary";
     }
 
+    private int getLessonWage(
+            Long workplaceId,
+            List<Workplace> workplaces) {
+
+        for (Workplace workplace : workplaces) {
+            if (workplace.getId().equals(workplaceId)) {
+                Integer lessonWage = workplace.getLessonWage();
+                return lessonWage == null ? 0 : lessonWage;
+            }
+        }
+
+        return 0;
+    }
+
     @PostMapping("/salary/actual")
     public String saveActualSalary(
             @RequestParam Long workplaceId,
             @RequestParam int year,
             @RequestParam int month,
             @RequestParam int actualAmount) {
-        
-        if (actualAmount < 0) {
+
+        if (actualAmount < 0 || month < 1 || month > 12) {
             return "redirect:/salary?year=" + year + "&month=" + month;
         }
+
         Salary salary = salaryRepository
                 .findByWorkplaceIdAndSalaryYearAndSalaryMonth(
                         workplaceId,
@@ -187,6 +229,6 @@ public class SalaryController {
 
         salaryRepository.save(salary);
 
-        return "redirect:/salary";
+        return "redirect:/salary?year=" + year + "&month=" + month;
     }
 }
